@@ -15,7 +15,7 @@ async function main() {
 
   // We get the contract to deploy
   const TokenGatedDao = await hre.ethers.getContractFactory("TokenGatedDao");
-  const tokenGatedDao = await TokenGatedDao.deploy("");
+  const tokenGatedDao = await TokenGatedDao.deploy("0xD590c2ED8aC1181a20680D114ab197504b445b9F");
 
   await tokenGatedDao.deployed();
 
