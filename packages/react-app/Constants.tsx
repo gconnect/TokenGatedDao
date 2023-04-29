@@ -1,0 +1,9 @@
+import ContractABI from './Dao.json'
+
+const CONTRACT_ADDRESS = '0x1175b271819C099313dB52749044c38B5CA336dC'
+const CONTRACT_ABI = ContractABI
+
+export {
+  CONTRACT_ADDRESS,
+  CONTRACT_ABI
+}
