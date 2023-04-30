@@ -3,7 +3,6 @@ import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useAc
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from '@/Constants'
 import CreateProposalModal from "@/components/CreateProposalModal";
 import TableList from "@/components/TableList";
-import { convertDateToTimeStamp } from "@/utils/ConvertDate";
 
 export default function Home() {
   const [showModal, setShowModal] = useState(false)

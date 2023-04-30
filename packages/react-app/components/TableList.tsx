@@ -71,9 +71,9 @@ export default function TableList(param: IParam) {
                           pathname: `/proposals/${index}`,
                           query: {
                             id: hexToNumber(item.id._hex), creator: item.creator, title: item.title,
-                            description: item.description, yesVotes: item.yesVotes._hex,
-                            noVotes: item.noVotes._hex, startTime: item.startTime._hex,
-                            endTime: item.endTime._hex
+                            description: item.description, yesVotes: hexToNumber(item.yesVotes._hex),
+                            noVotes: hexToNumber(item.noVotes._hex), startTime: hexToNumber(item.startTime._hex),
+                            endTime: hexToNumber(item.endTime._hex)
                           }
                         })} className="border-b dark:border-neutral-500 cursor-pointer">
                           <td className="whitespace-nowrap px-6 py-4 font-medium">{hexToNumber(item.id._hex)}</td>
