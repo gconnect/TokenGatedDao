@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TokenGatedDao {
     struct Proposal {
+        uint256 id;
         address creator;
         string title;
         string description;
@@ -18,7 +19,7 @@ contract TokenGatedDao {
     struct Voter {
        uint256 proposerIndex;
        address voterAddress;
-       bool voteChoice;
+       uint256 voteChoice;
     }
 
     struct Member {
@@ -38,18 +39,19 @@ contract TokenGatedDao {
     uint256 public votingPeriod;
     uint256 public memberCount;
 
-    mapping(address => bool) public hasVoted;
+    mapping(address => mapping(uint256 => bool)) hasVoted;
     mapping(address => Member) public membersMap;
     // mapping(address => bool) public hasJoined;
 
+    event AddMember(address memberAddress, uint256 tokenBalance);
     event ProposalCreated(uint256 proposalId, string title, string description, uint256 startTime, uint256 endTime);
-    event Voted(uint256 proposalId, address voter, bool isYesVote, uint256 yesVotes, uint256 noVotes);
+    event Voted(uint256 proposalId, address voter, uint256 choice, uint256 yesVotes, uint256 noVotes);
     
     constructor(address _tokenAddress) {
         token = IERC20(_tokenAddress);
         owner = payable(msg.sender);
-        membersMap[owner].memberAddress = payable(msg.sender);
-        members.push(Member(msg.sender, token.balanceOf(msg.sender)));
+        // membersMap[owner].memberAddress = payable(msg.sender);
+        // members.push(Member(msg.sender, token.balanceOf(msg.sender)));
     }
 
     modifier onlyOwner {
@@ -69,12 +71,18 @@ contract TokenGatedDao {
     }
 
     function addMember() public {
-        require(msg.sender != address(0), "Already a member");
+        require(msg.sender != address(0), "Invalid address");
+    
+        // Check if member already exists
+        require(membersMap[msg.sender].memberAddress == address(0), "Already a member");
+        
+        // Add new member
         Member storage member = membersMap[msg.sender];
         member.memberAddress = msg.sender;
         member.tokenBalance =  token.balanceOf(msg.sender);
         members.push(Member(msg.sender, token.balanceOf(msg.sender)));
         memberCount++;
+        emit AddMember(msg.sender, token.balanceOf(msg.sender));
     }
 
     function createProposal(string calldata _title, string calldata _description, uint256 _startTime, uint256 _endTime) external onlyMember {
@@ -82,25 +90,26 @@ contract TokenGatedDao {
         require(_startTime > block.timestamp, "Proposal start time must be in the future");
         require(_endTime > _startTime, "Proposal end time must be after start time");
         require(membersMap[msg.sender].memberAddress == msg.sender, "You are not yet a member of this community");
-        proposals.push(Proposal(msg.sender, _title, _description, _startTime, _endTime, 0, 0));
+        proposals.push(Proposal(proposalCount, msg.sender, _title, _description, _startTime, _endTime, 0, 0));
         proposalCount++;
         emit ProposalCreated(proposals.length - 1, _title, _description, _startTime, _endTime);
     }
 
-    function vote(uint256 _proposalIndex, bool _supportsProposal) external onlyMember votingOngoing(proposals[_proposalIndex].startTime, proposals[_proposalIndex].endTime){
+    function vote(uint256 _proposalIndex, uint256 _choice) external onlyMember votingOngoing(proposals[_proposalIndex].startTime, proposals[_proposalIndex].endTime){
         require(_proposalIndex < proposalCount, "Invalid proposal index");
-        require(!hasVoted[msg.sender], "You have already voted for this proposal");
+        require(!hasVoted[msg.sender][_proposalIndex], "You have already voted for this proposal");
         require(token.balanceOf(msg.sender) > 0, "You must hold tokens to vote");
         require(membersMap[msg.sender].memberAddress == msg.sender, "You are not yet a member of this community");
-        hasVoted[msg.sender] = true;
 
-        if (_supportsProposal) {
+        if (_choice == 1) {
             proposals[_proposalIndex].yesVotes += 1;
         } else {
             proposals[_proposalIndex].noVotes += 1;
         }
-        voters.push(Voter(_proposalIndex, msg.sender, _supportsProposal));
-        emit Voted(_proposalIndex, msg.sender, _supportsProposal, proposals[_proposalIndex].yesVotes, proposals[_proposalIndex].noVotes);
+        voters.push(Voter(_proposalIndex, msg.sender, _choice));
+        hasVoted[msg.sender][_proposalIndex] = true; // Record the vote of the user for the current proposal
+
+        emit Voted(_proposalIndex, msg.sender, _choice, proposals[_proposalIndex].yesVotes, proposals[_proposalIndex].noVotes);
 
     }
 
@@ -155,8 +164,8 @@ contract TokenGatedDao {
         return members;
     }
 
-    function getTokenBalance() public view returns(uint256) {
-        return token.balanceOf(msg.sender);
+    function getTokenBalance(address _address) public view returns(uint256) {
+        return token.balanceOf(_address);
     }
 
    function getProposalStatus(uint256 _proposalIndex) public view returns (uint256) {
@@ -173,5 +182,13 @@ contract TokenGatedDao {
             status = ProposalStatus.Closed;
         }
         return uint256(status);
+    }
+
+    function getMemberVoteStatus(uint256 proposalId, address _address ) public view returns(bool){
+        return hasVoted[_address][proposalId];
+    }
+
+    function getMemberStatus(address _address) public view returns(bool){
+        return membersMap[_address].memberAddress == _address;
     }
 }

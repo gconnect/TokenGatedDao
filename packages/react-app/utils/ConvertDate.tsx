@@ -31,7 +31,7 @@ export const convertEndTime = (endTimeTimestamp : number) => {
   let timeDiffInHours = Math.floor((timeDiffInSeconds % (24 * 60 * 60)) / (60 * 60));
   console.log(`Start time is ${timeDiffInDays} days and ${timeDiffInHours} hours from now.`);
 
-  return `End in  ${timeDiffInDays} days and ${timeDiffInHours} hours.`
+  return `Ends in  ${timeDiffInDays} days and ${timeDiffInHours} hours.`
 }
 
 export const convertEnded = (endTimeTimestamp : number) => {

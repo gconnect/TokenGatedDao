@@ -1,18 +1,25 @@
 import { convertDateToTimeStamp } from '@/utils/ConvertDate'
 import React, { useState } from 'react'
-import { usePrepareContractWrite, useContractWrite, useWaitForTransaction } from 'wagmi'
+import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useContractRead, useAccount } from 'wagmi'
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from '@/Constants'
+import { hexToNumber } from '@/utils/Truncate'
 
 interface IParam {
   show: boolean
   hide: () => void
-  action: () => void
+  getData: () => void
+  // action?: (
+  //   title: string,
+  //   description: string,
+  //   startTime: number,
+  //   endTime: number) => void
 }
 export default function CreateProposalModal(param: IParam) {
   const [title, setTitle] = useState<string>("")
   const [description, setDescription] = useState<string>("")
   const [startTime, setStartTime] = useState<string>("")
   const [endTime, setEndTime] = useState<string>("")
+  const { address } = useAccount()
 
   const handleTitle = (e: React.FormEvent<HTMLInputElement>) => {
     setTitle(e.currentTarget.value)
@@ -42,6 +49,26 @@ export default function CreateProposalModal(param: IParam) {
   const { isLoading, isSuccess } = useWaitForTransaction({
       hash: data?.hash,
   })
+  const handleSubmit = () => {
+    if (!title || !description || !startTime || !endTime) {
+      alert("Field required")
+    } else {
+      write?.()
+      param.getData
+      // param.action(title, description, convertDateToTimeStamp(startTime), convertDateToTimeStamp(endTime))
+      param.hide()
+    }
+  }
+  
+  const tokenBalance = useContractRead({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI.abi,
+    functionName: 'getTokenBalance',
+    chainId: 44787,
+    args: [address]
+  })
+  const balance: any = tokenBalance && tokenBalance.data
+  console.log(`balance ${balance && hexToNumber(balance._hex) / 1e18}`)
   
   return (
     <div>
@@ -68,14 +95,14 @@ export default function CreateProposalModal(param: IParam) {
                         <label>End</label>
                         <input className='border-2 rounded w-full p-2' type="datetime-local" min={new Date().toISOString().slice(0, 16)} value={endTime} onChange={handleEndtime} />   
                       </div>
-                      
-                    </div>  
+                    </div> 
+                    {balance &&  hexToNumber(balance._hex)/1e18 <= 0 ? <p className='text-red-400 my-4'>You need MT token to vote!</p> : null}
                   </div>
                 </div>
               </div>
             </div>
             <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-              <button onClick={() => write?.()} type="button" className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:ml-3 sm:w-auto">Submit</button>
+              <button onClick={handleSubmit} type="button" className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ${balance && hexToNumber(balance._hex)/1e18 <= 0 ? "  bg-slate-200" : " bg-green-500 hover:bg-green-500"} sm:ml-3 sm:w-auto`} disabled={hexToNumber(balance._hex) <= 0 ? true : false}>Submit</button>
               <button onClick={param.hide} type="button" className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">close</button>
             </div>
           </div>

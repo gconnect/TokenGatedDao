@@ -5,25 +5,22 @@ import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useCo
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from '@/Constants'
 import { hexToNumber, truncate } from '@/utils/Truncate'
 import { formatTimestamp, dateToTimeStamp } from '@/utils/ConvertDate'
+import { useAccount } from 'wagmi'
 
 export default function Proposal() {
   const [selected, setSelected] = useState<string>("")
   const router = useRouter()
   const { id, creator, title, description, startTime, endTime, noVotes, yesVotes } = router.query
-   const choices = [
-    { text: 'Yes', value: true },
-    { text: 'No', value: false }
-   ]
-  
-   const contractRead : any = useContractRead({
-      address: CONTRACT_ADDRESS,
-      abi: CONTRACT_ABI.abi,
-      functionName: 'getVoters',
-      chainId: 44787,
-    })
-  
-  console.log(contractRead.data)
+  const { address } = useAccount()
 
+  console.log(address)
+  // Vote choice
+   const choices = [
+    { text: 'YES', value: 1 },
+    { text: 'NO', value: 0 }
+   ]
+
+  // Config Vote
   const { config } = usePrepareContractWrite({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI.abi,
@@ -31,16 +28,60 @@ export default function Proposal() {
     args: [id, selected],
   })
 
+  // handle vote state
   const { data, write } = useContractWrite(config)
   const { isLoading, isSuccess } = useWaitForTransaction({
       hash: data?.hash,
   })
 
+  // Radio button selection
   const handleSelected = (e: React.FormEvent<HTMLInputElement>) => {
     setSelected(e.currentTarget.value)
+    console.log(e.currentTarget.value)
   }
+
+  const handleSubmit = () => {
+    if (!selected) {
+      alert("please make a choice")
+    } else {
+      write?.()
+    }
+
+  }
+
+  // Get voters
+  const voters : any = useContractRead({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI.abi,
+    functionName: 'getVoters',
+    chainId: 44787,
+  })
   
-  console.log(data)
+  // Filter all voters on a proposal
+  const votersList = voters.data && voters.data.filter((item: any) => hexToNumber(item.proposerIndex).toString() == id)
+  const voterLength = votersList && votersList.length !== "NaN"
+  
+   // Get voter status; check if a member has already voted for the proposal
+  const memberVoteStatus : any = useContractRead({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI.abi,
+    functionName: 'getMemberVoteStatus',
+    chainId: 44787,
+    args: [id, address]
+  })
+  
+  const voteStatus = memberVoteStatus && memberVoteStatus.data
+
+  const tokenBalance = useContractRead({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI.abi,
+    functionName: 'getTokenBalance',
+    chainId: 44787,
+    args: [address]
+  })
+  const balance: any = tokenBalance && tokenBalance.data
+  console.log( `balance ${balance &&  hexToNumber(balance._hex)/1e18}`)
+
   return (
     <div>
       <div>
@@ -56,30 +97,33 @@ export default function Proposal() {
         <label className='mx-2'>{creator}</label>
         </div>
     
-        <p>{description}</p>
+        <p className='text-lg my-4'>{description}</p>
       </div>
       <div className='flex justify-around'>
         <div className='border-2 p-4 rounded'>
         <h1 className='border-b pb-2 text-lg font-bold'>Cast your vote</h1>
         <div className='py-2 border-b cursor-pointer'>
            {choices.map((item, index) => <div key={index}>
-                    <input className='mx-2' type="radio" id="yes" name="choice" value={item.value.toString()} checked={selected === item.value.toString()}
-                onChange={handleSelected} />
-                    <label className='text-lg' htmlFor="yes">{`${item.text} - ${title} `}</label>
-                  </div>                    
-               )}
-            
-        </div>
-          <button onClick={() => write?.()} className='bg-green-500 rounded w-full p-4'>Vote</button>
+              <input className='mx-2' type="radio"  value={item.value} name='choice' checked={selected === item.value.toString()}
+          onChange={handleSelected} />
+              <label className='text-lg'>{`${item.text} - ${title} `}</label>
+            </div>                    
+            )}
+          </div>
+          {balance &&  hexToNumber(balance._hex) <= 0 ? <p className='text-red-400 my-4'>You need MT token to vote!</p> : null}
+          <button onClick={handleSubmit} className={`${voteStatus || balance && hexToNumber(balance._hex) <= 0 ? "bg-slate-200 " : "bg-green-500 "} rounded w-full p-4`} disabled ={voteStatus ? true : false}>Vote</button>
         </div>
 
           <div className='border-2 p-4 rounded'>
             <h1 className='border-b pb-2 text-lg font-bold'>Current results</h1>
-            <div className='py-2 border-b'>
-             <p>{`Yes ${hexToNumber(yesVotes)}%`}</p>
+          <div className='py-2 border-b'>
+            <p>{`Yes ${hexToNumber(yesVotes)* 100/voterLength}%`}</p>
+            <progress id="result" value={`${hexToNumber(yesVotes) * 100/voterLength}`} max="100"></progress>
             </div>
             <div className='py-2 border-b'>
-             <p>{`No ${hexToNumber(noVotes)}%`}</p>
+            <p>{`No ${hexToNumber(noVotes) * 100/voterLength}%`}</p>
+            <progress className='border rounded'  id="result" value={`${hexToNumber(noVotes) * 100/voterLength}` } max="100"></progress>
+
           </div>
           <div>
             <label className='font-bold'>Start time: </label>
@@ -91,8 +135,7 @@ export default function Proposal() {
           </div>
         </div>
       </div>
-        {/* {contractRead.data.find((item : any) => hexToNumber(item.proposerIndex._hex) == id ? <VotersList /> : null } */}
-       <VotersList />
+       <VotersList voters={votersList}/>
     </div>
   )
 }
