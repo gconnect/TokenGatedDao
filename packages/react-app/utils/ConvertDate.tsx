@@ -12,8 +12,8 @@ export const dateToTimeStamp = () => {
 }
 
 export const convertStartTime = (startTimeTimestamp : number) => {
-  let startDate = new Date(startTimeTimestamp * 1000);
-  let currentDate = new Date();
+  let startDate: any = new Date(startTimeTimestamp * 1000);
+  let currentDate: any = new Date();
   let timeDiffInSeconds = Math.floor((startDate - currentDate) / 1000);
   let timeDiffInDays = Math.floor(timeDiffInSeconds / (24 * 60 * 60));
   let timeDiffInHours = Math.floor((timeDiffInSeconds % (24 * 60 * 60)) / (60 * 60));
@@ -24,8 +24,8 @@ export const convertStartTime = (startTimeTimestamp : number) => {
 
 
 export const convertEndTime = (endTimeTimestamp : number) => {
-  let endDate = new Date(endTimeTimestamp * 1000);
-  let currentDate = new Date();
+  let endDate: any = new Date(endTimeTimestamp * 1000);
+  let currentDate: any = new Date();
   let timeDiffInSeconds = Math.floor((endDate - currentDate) / 1000);
   let timeDiffInDays = Math.floor(timeDiffInSeconds / (24 * 60 * 60));
   let timeDiffInHours = Math.floor((timeDiffInSeconds % (24 * 60 * 60)) / (60 * 60));
@@ -35,8 +35,8 @@ export const convertEndTime = (endTimeTimestamp : number) => {
 }
 
 export const convertEnded = (endTimeTimestamp : number) => {
-  let endDate = new Date(endTimeTimestamp * 1000);
-  let currentDate = new Date();
+  let endDate: any = new Date(endTimeTimestamp * 1000);
+  let currentDate: any = new Date();
   let timeDiffInSeconds = Math.floor((currentDate - endDate) / 1000);
   let timeDiffInDays = Math.floor(timeDiffInSeconds / (24 * 60 * 60));
   let timeDiffInHours = Math.floor((timeDiffInSeconds % (24 * 60 * 60)) / (60 * 60));
