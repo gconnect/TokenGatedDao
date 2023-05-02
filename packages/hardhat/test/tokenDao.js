@@ -112,49 +112,57 @@ describe("Token and Dao Contract", function () {
   });
     
 
-  // describe("Vote", function () {
+  describe("Vote", function () {
 
-  //   it("Should revert if voting has not started", async function () {
-  //     const { token, dao, owner, member1, member2 } = await loadFixture(deployTokenDaoFixture)  
-  //     await dao.connect(member1).addMember()
-  //     await dao.connect(member2).addMember()
-  //     await token.connect(owner).transfer(member1.address, 100)
-  //     await token.connect(owner).transfer(member2.address, 100)
-  //     await dao.connect(member1).createProposal("proposal title", "proposal description", startTime, endTime)
-  //     expect(await dao.connect(member2).vote(0, 1)).to.be.revertedWith("Voting has not started yet")
-  //   })
+    it("Should revert if voting has not started", async function () {
+      const { token, dao, owner, member1, member2 } = await loadFixture(deployTokenDaoFixture)  
+      await dao.connect(member1).addMember()
+      await dao.connect(member2).addMember()
+      await token.connect(owner).transfer(member1.address, 100)
+      await token.connect(owner).transfer(member2.address, 100)
+      await dao.connect(member1).createProposal("proposal title", "proposal description", startTime, endTime)
+      setTimeout(async function() {
+        expect(await dao.connect(member2).vote(0, 1)).to.be.revertedWith("Voting has not started yet")
+      }, 10000)
+    })
 
-  //   it("Should not be able to vote if not  registered member of the community", async function () {
-  //     const { token, dao, owner, member1, member2 } = await loadFixture(deployTokenDaoFixture)  
-  //     await dao.connect(member1).addMember()
-  //     await token.connect(owner).transfer(member1.address, 100)
-  //     await token.connect(owner).transfer(member2.address, 100)
-  //     await dao.connect(member1).createProposal("proposal title", "proposal description", startTime, endTime)
-  //     expect(await dao.connect(member2).vote(0, 1)).to.be.revertedWith("You are not yet a member of this community")
-  //   })
+    it("Should not be able to vote if not  registered member of the community", async function () {
+      const { token, dao, owner, member1, member2 } = await loadFixture(deployTokenDaoFixture)  
+      await dao.connect(member1).addMember()
+      await token.connect(owner).transfer(member1.address, 100)
+      await token.connect(owner).transfer(member2.address, 100)
+      await dao.connect(member1).createProposal("proposal title", "proposal description", startTime, endTime)
+      setTimeout(async function() {
+        expect(await dao.connect(member2).vote(0, 1)).to.be.revertedWith("You are not yet a member of this community")
+      }, 10000)
+    })
 
-  //    it("Should not vote on a proposal more than once", async function () {
-  //     const { token, dao, owner, member1, member2 } = await loadFixture(deployTokenDaoFixture)  
-  //      await dao.connect(member1).addMember()
-  //     await dao.connect(member2).addMember()
-  //     await token.connect(owner).transfer(member1.address, 100)
-  //     await token.connect(owner).transfer(member2.address, 100)
-  //     await dao.connect(member1).createProposal("proposal title", "proposal description", startTime, endTime)
-  //     await dao.connect(member2).vote(0, 1)
-  //     expect(await dao.connect(member2).vote(0, 1)).to.be.revertedWith("You have already voted for this proposal")
-  //   })
+     it("Should not vote on a proposal more than once", async function () {
+      const { token, dao, owner, member1, member2 } = await loadFixture(deployTokenDaoFixture)  
+       await dao.connect(member1).addMember()
+      await dao.connect(member2).addMember()
+      await token.connect(owner).transfer(member1.address, 100)
+      await token.connect(owner).transfer(member2.address, 100)
+      await dao.connect(member1).createProposal("proposal title", "proposal description", startTime, endTime)
+       setTimeout(async function () {
+        await dao.connect(member2).vote(0, 1)
+        expect(await dao.connect(member2).vote(0, 1)).to.be.revertedWith("You have already voted for this proposal")
+      }, 30000)
+    })
 
-  //   it("Should not be able to vote if member does not have a token", async  function () {
-  //     const { token, dao, owner, member1, member2 } = await loadFixture(deployTokenDaoFixture)  
-  //     await dao.connect(member1).addMember()
-  //     await dao.connect(member2).addMember()
-  //     await token.connect(owner).transfer(member1.address, 100)
-  //     await dao.connect(member1).createProposal("proposal title", "proposal description", startTime, endTime)
-  //     await dao.connect(member2).vote(0, 1)
-  //     expect(await dao.connect(member2).vote(0, 1)).to.be.revertedWith("You must hold tokens to vote")
-  //   })
+    it("Should not be able to vote if member does not have a token", async  function () {
+      const { token, dao, owner, member1, member2 } = await loadFixture(deployTokenDaoFixture)  
+      await dao.connect(member1).addMember()
+      await dao.connect(member2).addMember()
+      await token.connect(owner).transfer(member1.address, 100)
+      await dao.connect(member1).createProposal("proposal title", "proposal description", startTime, endTime)
+      setTimeout(async function() {
+        expect(await dao.connect(member2).vote(0, 1)).to.be.revertedWith("You must hold tokens to vote")
+      }, 30000)
+      
+    })
     
-  // })
+  })
   
 
 })
