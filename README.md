@@ -15,5 +15,5 @@ Token Gated Dao is a Decentralized Autonomous Organization Dapp. The Dapp allows
 - Get all voters on a proposal
 
 # License
-Distributed under the MIT License. See LICENSE.txt for more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/gconnect/TokenGatedDao/blob/master/LICENSE) for more information.
 
