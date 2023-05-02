@@ -13,3 +13,7 @@ Token Gated Dao is a Decentralized Autonomous Organization Dapp. The Dapp allows
 - To create proposal member need to hold the MT token
 - Get all proposals
 - Get all voters on a proposal
+
+# License
+Distributed under the MIT License. See LICENSE.txt for more information.
+
